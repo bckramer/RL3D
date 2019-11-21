@@ -29,6 +29,8 @@ AFirstPersonAgent::AFirstPersonAgent(const FObjectInitializer& ObjectInitializer
 // Called when the game starts or when spawned
 void AFirstPersonAgent::BeginPlay()
 {
+	NormalFiringCooldown = FiringCooldown;
+	NormalHealth = InitialHealth;
 	Super::BeginPlay();
 	if (PawnSensingComp) {
 		PawnSensingComp->OnSeePawn.AddDynamic(this, &AFirstPersonAgent::OnSeePawn);
@@ -41,7 +43,12 @@ void AFirstPersonAgent::BeginPlay()
 
 void AFirstPersonAgent::OnSeePawn(APawn* Pawn)
 {
-	SensedPawn = Pawn;
+	if (Pawn->GetClass() == PickupClass) {
+		ItemSensed = true;
+	}
+	else {
+		SensedPawn = Pawn;
+	}
 
 }
 
@@ -57,9 +64,7 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 		invincible = false;
 	}
 	if (resetTimer > ResetTime) {
-		SensedPawn = NULL;
-		EnemySensed = false;
-		resetTimer = 0.0f;
+		ResetValues();
 	}
 	resetTimer = resetTimer + DeltaTime;
 	if (SensedPawn != NULL) {
@@ -69,9 +74,24 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 
 	/* Output Given */
 
+
 	if (Dead) {
 		Respawn();
 	}
+
+}
+
+void AFirstPersonAgent::ResetValues() {
+	TookDamage = false;
+	GaveDamage = false;
+	EnemyDestroyed = false;
+
+	SensedPawn = NULL;
+	EnemySensed = false;
+	ItemSensed = false;
+	resetTimer = 0.0f;
+
+
 
 }
 
@@ -102,17 +122,17 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 
 void AFirstPersonAgent::MoveX(float Val) {
 	FVector ActorLocation = GetActorLocation();
-	SetActorLocation(FVector(ActorLocation.X + Val, ActorLocation.Y, ActorLocation.Z));
+	SetActorLocation(FVector(ActorLocation.X + (Val * MovementSpeed), ActorLocation.Y, ActorLocation.Z));
 }
 
 void AFirstPersonAgent::MoveY(float Val) {
 	FVector ActorLocation = GetActorLocation();
-	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + Val, ActorLocation.Z));
+	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + (Val * MovementSpeed), ActorLocation.Z));
 }
 
 void AFirstPersonAgent::Roll(float Val) {
 	FRotator ActorRotation = GetActorRotation();
-	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw, ActorRotation.Roll + Val));
+	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw, ActorRotation.Roll + (Val * RotationSpeed)));
 }
 
 void AFirstPersonAgent::Respawn() {
@@ -124,9 +144,11 @@ void AFirstPersonAgent::Respawn() {
 		int randIndex = FMath::RandRange(0, length - 1);
 		AActor* SelectedSpawnPoint = SpawnPoints[randIndex];
 		FVector SelectedLoc = SelectedSpawnPoint->GetActorLocation();
-		SetActorLocation(FVector(SelectedLoc.X, SelectedLoc.Y, SelectedLoc.Z + 5.0f));
+		SetActorLocation(FVector(SelectedLoc.X, SelectedLoc.Y, SelectedLoc.Z + ZRespawnOffset));
 	}
 	Dead = false;
+	InitialHealth = NormalHealth;
+	FiringCooldown = NormalFiringCooldown;
 
 }
 
@@ -156,6 +178,18 @@ void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ERROR: Enemy not set!")));
 				}
 			}
+			TookDamage = true;
+		}
+		else if (OtherActor->GetClass() == PickupClass) {
+			APickup* Pickup = Cast<APickup>(OtherActor);
+			if (Pickup->HealthPickup) {
+				InitialHealth = InitialHealth + Pickup->HealthBonus;
+			}
+			if (Pickup->FiringPickup) {
+				FiringCooldown = FiringCooldown / Pickup->FiringRateModifier;
+				IncreasedFireRate = true;
+			}
+			ItemAcquired = true;
 		}
 	}
 }

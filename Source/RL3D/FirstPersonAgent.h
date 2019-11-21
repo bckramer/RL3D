@@ -7,6 +7,7 @@
 #include "Projectile.h"
 #include "Perception/PawnSensingComponent.h"
 #include "Engine/World.h"
+#include "Pickup.h"
 #include "Runtime/Core/Public/Misc/App.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Components/BoxComponent.h"
@@ -56,6 +57,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Projectile)
 		UClass* SpawnPointClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Projectile)
+		UClass* PickupClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		FVector GunOffset;
 
@@ -72,7 +76,13 @@ public:
 		int TotalEliminations = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool ZRespawnOffset;
+		float ZRespawnOffset = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float MovementSpeed = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float RotationSpeed = 1.0f;
 
 	/* State Information */
 
@@ -80,29 +90,36 @@ public:
 		float InitialHealth = 20.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool EnemySensed;
+		bool EnemySensed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool EnemyDestroyed;
+		bool EnemyDestroyed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool Dead;
+		bool Dead = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool PawnSensed;
+		bool PawnSensed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool ItemSensed;
+		bool ItemAcquired = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool TookDamage;
+		bool ItemSensed = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool GaveDamage;
+		bool IncreasedFireRate = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool TookDamage = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool GaveDamage = false;
 
 
 
-
+	float NormalFiringCooldown = 0.0f;
+	float NormalHealth = 0.0f;
 	float resetTimer = 0.0f;
 	float CooldownTracker = 0.0f;
 
@@ -132,5 +149,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 		void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(BlueprintCallable)
+		void ResetValues();
 
 };

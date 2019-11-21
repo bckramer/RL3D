@@ -46,6 +46,12 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (startDestroy) {
+		destroyTimer -= DeltaTime;
+		if (destroyTimer <= 0.0f) {
+			Destroy();
+		}
+	}
 
 }
 
@@ -57,6 +63,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Projectile Hit")));
 		//Destroy();
+		startDestroy = true;
 	}
 }
 

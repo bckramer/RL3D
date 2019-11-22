@@ -12,6 +12,10 @@ AFirstPersonAgent::AFirstPersonAgent(const FObjectInitializer& ObjectInitializer
 	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
 	RootComponent = CollisionComp;
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
+	LeftSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSensorEnd"));
+	MiddleSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("MiddleSensorEnd"));
+	MiddleSensorEnd->RelativeLocation = FVector(TraceLength, 0.0f, 0.0f);
+	RightSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("RightSensorEnd"));
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(CollisionComp);
@@ -29,6 +33,10 @@ AFirstPersonAgent::AFirstPersonAgent(const FObjectInitializer& ObjectInitializer
 // Called when the game starts or when spawned
 void AFirstPersonAgent::BeginPlay()
 {
+	LeftSensorEnd->RelativeLocation = FVector(TraceLength, -TraceLength, 0.0f);
+	MiddleSensorEnd->RelativeLocation = FVector(TraceLength, 0.0f, 0.0f);
+	RightSensorEnd->RelativeLocation = FVector(TraceLength, TraceLength, 0.0f);
+
 	NormalFiringCooldown = FiringCooldown;
 	NormalHealth = InitialHealth;
 	Super::BeginPlay();
@@ -70,6 +78,7 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 	if (SensedPawn != NULL) {
 		EnemySensed = true;
 	}
+	ObstacleCheck();
 	/* Give Output */
 
 	/* Output Given */
@@ -95,6 +104,8 @@ void AFirstPersonAgent::ResetValues() {
 
 }
 
+
+// 0 or 1
 void AFirstPersonAgent::Fire(bool Shouldfire)
 {
 	if (CooldownTracker > FiringCooldown) {
@@ -120,23 +131,26 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 	}
 }
 
+// -1.0f to 1.0f
 void AFirstPersonAgent::MoveX(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X + (Val * MovementSpeed), ActorLocation.Y, ActorLocation.Z));
 }
 
+// -1.0f to 1.0f
 void AFirstPersonAgent::MoveY(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + (Val * MovementSpeed), ActorLocation.Z));
 }
 
+// -1.0f to 1.0f
 void AFirstPersonAgent::Roll(float Val) {
 	FRotator ActorRotation = GetActorRotation();
 	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw, ActorRotation.Roll + (Val * RotationSpeed)));
 }
 
 void AFirstPersonAgent::Respawn() {
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Respawning")));
+	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Respawning")));
 	TArray<AActor*> SpawnPoints;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnPointClass, SpawnPoints);
 	int length = SpawnPoints.Num();
@@ -157,7 +171,7 @@ void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	{
 		if (OtherActor->GetClass() == ProjectileClass && !invincible) {
 			InitialHealth -= 10.0f;
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), InitialHealth));
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), InitialHealth));
 			if (InitialHealth <= 0.0f) {
 				Dead = true;
 				if (Enemy != NULL) {
@@ -194,3 +208,26 @@ void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	}
 }
 
+void AFirstPersonAgent::ObstacleCheck() {
+	FVector Location;
+	FRotator Rotation;
+	FHitResult Hit;
+
+	FVector Start = GetActorLocation();
+
+	// Check Left
+	FVector End = LeftSensorEnd->GetComponentLocation();
+	FCollisionQueryParams TraceParams;
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+
+	// Check Middle
+	End = MiddleSensorEnd->GetComponentLocation();
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+
+	// Check Right
+	End = RightSensorEnd->GetComponentLocation();
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+}

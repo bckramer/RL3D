@@ -12,6 +12,7 @@
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "Camera/CameraComponent.h"
 #include "FirstPersonAgent.generated.h"
@@ -37,6 +38,15 @@ public:
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 		class USceneComponent* FP_MuzzleLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
+		class USceneComponent* LeftSensorEnd;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
+		class USceneComponent* MiddleSensorEnd;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
+		class USceneComponent* RightSensorEnd;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		UBoxComponent* CollisionComp;
@@ -84,6 +94,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float RotationSpeed = 1.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float TraceLength = 100.0f;
+
 	/* State Information */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -99,9 +112,6 @@ public:
 		bool Dead = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool PawnSensed = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool ItemAcquired = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -115,6 +125,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool GaveDamage = false;
+
+	// TODO
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ObstacleLeft = 0.0f;
+
+	// TODO
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ObstacleMiddle = 0.0f;
+
+	// TODO
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ObstacleRight = 0.0f;
+
+	// TODO
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool EnemyLinedUp = false;
 
 
 
@@ -152,5 +178,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void ResetValues();
+
+	UFUNCTION(BlueprintCallable)
+		void ObstacleCheck();
 
 };

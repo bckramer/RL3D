@@ -12,10 +12,6 @@ AFirstPersonAgent::AFirstPersonAgent(const FObjectInitializer& ObjectInitializer
 	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
 	RootComponent = CollisionComp;
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
-	LeftSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSensorEnd"));
-	MiddleSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("MiddleSensorEnd"));
-	MiddleSensorEnd->RelativeLocation = FVector(TraceLength, 0.0f, 0.0f);
-	RightSensorEnd = CreateDefaultSubobject<USceneComponent>(TEXT("RightSensorEnd"));
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(CollisionComp);
@@ -33,9 +29,6 @@ AFirstPersonAgent::AFirstPersonAgent(const FObjectInitializer& ObjectInitializer
 // Called when the game starts or when spawned
 void AFirstPersonAgent::BeginPlay()
 {
-	LeftSensorEnd->RelativeLocation = FVector(TraceLength, -TraceLength, 0.0f);
-	MiddleSensorEnd->RelativeLocation = FVector(TraceLength, 0.0f, 0.0f);
-	RightSensorEnd->RelativeLocation = FVector(TraceLength, TraceLength, 0.0f);
 
 	NormalFiringCooldown = FiringCooldown;
 	NormalHealth = InitialHealth;
@@ -79,14 +72,102 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 		EnemySensed = true;
 	}
 	ObstacleCheck();
+	UpdateFitness();
 	/* Give Output */
 
 	/* Output Given */
 
-
 	if (Dead) {
-		Respawn();
+		Destroy();
 	}
+
+}
+
+void AFirstPersonAgent::MakeMoves() 
+{
+	if (org != NULL) {
+		NEAT::Network *net;
+		double out[4]; //The four outputs
+		double this_out; //The current output
+		int count;
+		// double errorsum;
+
+		bool success;  //Check for successful activation
+		int numnodes;  /* Used to figure out how many nodes
+				  should be visited during activation */
+
+		int net_depth = 1; //The max depth of the network to be activated
+		int relax; //Activates until relaxation
+
+		double in[4][3] = { { InitialHealth, EnemySensed, EnemyDestroyed   },
+							 { Dead, ItemAcquired, ItemSensed		        },
+							 { IncreasedFireRate, TookDamage, GaveDamage    },
+							 { ObstacleLeft, ObstacleMiddle, ObstacleRight	} };
+		net = org->net;
+		numnodes = ((org->gnome)->nodes).size();
+
+		for (count = 0; count <= 3; count++) {
+			net->load_sensors(in[count]);
+
+			//Relax net and get output
+			success = net->activate();
+
+			//use depth to ensure relaxation
+			for (relax = 0; relax <= net_depth; relax++) {
+				success = net->activate();
+				this_out = (*(net->outputs.begin()))->activation;
+			}
+
+
+
+			out[count] = (*(net->outputs.begin()))->activation;
+
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output %d: %lf"), count, out[count]));
+
+			net->flush();
+
+		}
+
+		if (!initialized) {
+			initialized = true;
+		}
+
+		MoveX(out[0]);
+		MoveY(out[1]);
+		Roll(out[2]);
+		Fire(true);
+	}
+	else {
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organism not set...")));
+	}
+}
+
+void AFirstPersonAgent::UpdateFitness() 
+{
+	if (EnemySensed) {
+		Fitness += 10.0f;
+	}
+	if (GaveDamage) {
+		Fitness += 20.0f;
+	}
+	if (EnemyDestroyed) {
+		Fitness += 100.0f;
+	}
+	if (ItemAcquired) {
+		Fitness += 20.0f;
+	}
+	if (ItemSensed) {
+		Fitness += 5.0f;
+	}
+	if (IncreasedFireRate) {
+		Fitness += 10.0f;
+	}
+	if (TookDamage) {
+		Fitness -= 20.0f;
+	}
+	float healthBonus = InitialHealth - NormalHealth;
+	Fitness += healthBonus;
+
 
 }
 
@@ -99,15 +180,13 @@ void AFirstPersonAgent::ResetValues() {
 	EnemySensed = false;
 	ItemSensed = false;
 	resetTimer = 0.0f;
-
-
-
 }
 
 
 // 0 or 1
 void AFirstPersonAgent::Fire(bool Shouldfire)
 {
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire called...")));
 	if (CooldownTracker > FiringCooldown) {
 		if (ProjectileClass != NULL)
 		{
@@ -123,7 +202,10 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 		
 				//spawn the projectile at the muzzle
-				World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				AProjectile* projectile = World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				if (projectile != NULL) {
+					projectile->SetOwner(this);
+				}
 			}
 			CooldownTracker = 0.0f;
 		}
@@ -135,18 +217,21 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 void AFirstPersonAgent::MoveX(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X + (Val * MovementSpeed), ActorLocation.Y, ActorLocation.Z));
+	Fitness += (Val / 10.0f);
 }
 
 // -1.0f to 1.0f
 void AFirstPersonAgent::MoveY(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + (Val * MovementSpeed), ActorLocation.Z));
+	Fitness += (Val / 10.0f);
 }
 
 // -1.0f to 1.0f
 void AFirstPersonAgent::Roll(float Val) {
 	FRotator ActorRotation = GetActorRotation();
 	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw, ActorRotation.Roll + (Val * RotationSpeed)));
+	Fitness += (Val / 10.0f);
 }
 
 void AFirstPersonAgent::Respawn() {
@@ -173,18 +258,21 @@ void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 			InitialHealth -= 10.0f;
 			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), InitialHealth));
 			if (InitialHealth <= 0.0f) {
-				Dead = true;
-				if (Enemy != NULL) {
-					Enemy->EnemyDestroyed = true;
-					Enemy->TotalEliminations += 1;
-				}
-				else {
-					if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ERROR: Enemy not set!")));
+				if (OtherActor->GetOwner()->GetClass() == GetClass()) {
+					Dead = true;
+					AFirstPersonAgent* CastedActor = (AFirstPersonAgent*)OtherActor;
+					CastedActor->GaveDamage = true;
+					CastedActor->EnemyDestroyed = true;
+					CastedActor->TotalEliminations += 1;
 				}
 			}
 			else {
-				if (Enemy != NULL) {
-					Enemy->GaveDamage = true;
+				//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, OtherActor->GetOwner()->GetClass());
+				if (OtherActor->GetOwner()->GetClass() == GetClass()) {
+					if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Is true!"));
+					//Enemy->GaveDamage = true;
+					AFirstPersonAgent* CastedActor = (AFirstPersonAgent*) OtherActor;
+					CastedActor->GaveDamage = true;
 					invincible = true;
 					invincibilityTimer = 0.1f;
 				}
@@ -216,18 +304,24 @@ void AFirstPersonAgent::ObstacleCheck() {
 	FVector Start = GetActorLocation();
 
 	// Check Left
-	FVector End = LeftSensorEnd->GetComponentLocation();
+	FVector End = End = Start + ((GetActorForwardVector() - GetActorRightVector()) * TraceLength);
 	FCollisionQueryParams TraceParams;
-	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams);
+	ObstacleLeft = Hit.Distance;
+	if (Hit.bBlockingHit) {
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Hit Distance: %f"), Hit.Distance));
+	}
 	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
 
 	// Check Middle
-	End = MiddleSensorEnd->GetComponentLocation();
+	End = Start + (GetActorForwardVector() * TraceLength * 2.0f);
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	ObstacleMiddle = Hit.Distance;
 	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
 
 	// Check Right
-	End = RightSensorEnd->GetComponentLocation();
+	End = Start + ((GetActorForwardVector() + GetActorRightVector()) * TraceLength);
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
+	ObstacleRight = Hit.Distance;
 	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
 }

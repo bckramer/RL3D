@@ -15,6 +15,28 @@
 #include "DrawDebugHelpers.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "Camera/CameraComponent.h"
+
+/* Global Headers */
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <list>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+
+/* NEAT headers*/
+#include "NEAT.1.2.1/neat.h"
+#include "NEAT.1.2.1/network.h"
+#include "NEAT.1.2.1/population.h"
+#include "NEAT.1.2.1/organism.h"
+#include "NEAT.1.2.1/genome.h"
+#include "NEAT.1.2.1/species.h"
+
 #include "FirstPersonAgent.generated.h"
 
 UCLASS()
@@ -35,18 +57,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 		class USceneComponent* FP_MuzzleLocation;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
-		class USceneComponent* LeftSensorEnd;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
-		class USceneComponent* MiddleSensorEnd;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh)
-		class USceneComponent* RightSensorEnd;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		UBoxComponent* CollisionComp;
@@ -138,12 +153,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float ObstacleRight = 0.0f;
 
-	// TODO
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool EnemyLinedUp = false;
+		float Fitness = 0.0;
 
 
-
+	NEAT::Organism* org;
 	float NormalFiringCooldown = 0.0f;
 	float NormalHealth = 0.0f;
 	float resetTimer = 0.0f;
@@ -151,6 +165,11 @@ public:
 
 	float invincible = false;
 	float invincibilityTimer = 0.0f;
+
+	bool initialized = false;
+
+	UFUNCTION(BlueprintCallable)
+		void MakeMoves();
 
 	UFUNCTION(BlueprintCallable)
 		void Respawn();
@@ -178,6 +197,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void ResetValues();
+
+	UFUNCTION(BlueprintCallable)
+		void UpdateFitness();
 
 	UFUNCTION(BlueprintCallable)
 		void ObstacleCheck();

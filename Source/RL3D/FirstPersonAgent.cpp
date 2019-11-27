@@ -76,6 +76,9 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 	/* Give Output */
 
 	/* Output Given */
+	if (initialized) {
+		MakeMoves();
+	}
 
 	if (Dead) {
 		Destroy();
@@ -306,22 +309,22 @@ void AFirstPersonAgent::ObstacleCheck() {
 	// Check Left
 	FVector End = End = Start + ((GetActorForwardVector() - GetActorRightVector()) * TraceLength);
 	FCollisionQueryParams TraceParams;
-	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams);
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 	ObstacleLeft = Hit.Distance;
 	if (Hit.bBlockingHit) {
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Hit Distance: %f"), Hit.Distance));
 	}
-	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+	DrawDebugLine(GetWorld(), Start, Hit.TraceEnd, FColor::Orange, false, 0.1f);
 
 	// Check Middle
 	End = Start + (GetActorForwardVector() * TraceLength * 2.0f);
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 	ObstacleMiddle = Hit.Distance;
-	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+	DrawDebugLine(GetWorld(), Start, Hit.TraceEnd, FColor::Orange, false, 0.1f);
 
 	// Check Right
 	End = Start + ((GetActorForwardVector() + GetActorRightVector()) * TraceLength);
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 	ObstacleRight = Hit.Distance;
-	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.1f);
+	DrawDebugLine(GetWorld(), Start, Hit.TraceEnd, FColor::Orange, false, 0.1f);
 }

@@ -31,7 +31,7 @@ void ANEAT_Manager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (initialized) {
-		agents[0]->MakeMoves();
+		//agents[0]->MakeMoves();
 	}
 }
 

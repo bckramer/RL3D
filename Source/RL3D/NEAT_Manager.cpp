@@ -40,6 +40,7 @@ TArray<AFirstPersonAgent*> ANEAT_Manager::SpawnNewAgents()
 	float spawnHeight = 300.0f;
 	TArray<AFirstPersonAgent*> agents;
 	float TraceLength = 100.0f;
+	float MuzzleXOffset = 100.0f;
 
 	FActorSpawnParameters ActorSpawnParams;
 	UWorld* const World = GetWorld();
@@ -48,37 +49,37 @@ TArray<AFirstPersonAgent*> ANEAT_Manager::SpawnNewAgents()
 	FVector SelectedLoc = Spawn1->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent1 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent1->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent1->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent1);
 
 	SelectedLoc = Spawn2->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent2 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent2->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent2->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent2);
 
 	SelectedLoc = Spawn3->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent3 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent3->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent3->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent3);
 
 	SelectedLoc = Spawn4->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent4 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent4->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent4->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent4);
 
 	SelectedLoc = Spawn5->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent5 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent5->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent5->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent5);
 
 	SelectedLoc = Spawn6->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
 	AFirstPersonAgent* Agent6 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
-	Agent6->FP_MuzzleLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	Agent6->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent6);
 
 	return agents;

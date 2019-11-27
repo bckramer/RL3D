@@ -196,9 +196,11 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 			UWorld* const World = GetWorld();
 			if (World != NULL)
 			{
-				const FRotator SpawnRotation = GetControlRotation();
+				const FRotator SpawnRotation = GetActorRotation();
 				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+				FVector tempLocation = GetActorLocation() + (GetActorForwardVector() * 100);
+				//const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+				const FVector SpawnLocation = tempLocation;
 		
 				//Set Spawn Collision Handling Override
 				FActorSpawnParameters ActorSpawnParams;

@@ -51,9 +51,16 @@ public:
 
 	NEAT::Population* Begin(int gens);
 
-	int Epoch(NEAT::Population *pop, int generation, char *filename, int &winnernum, int &winnergenes, int &winnernodes);
+	int StartEpoch(NEAT::Population *pop, int generation);
+
+	void NewEpoch(NEAT::Population *pop, int generation, char *filename, int &winnernum, int &winnergenes, int &winnernodes);
+
+	void EndEpoch(NEAT::Population *pop, int generation);
 
 	bool Evaluate(NEAT::Organism *org);
+
+	NEAT::Population* population;
+	int generation;
 
 	bool initialized = false;
 

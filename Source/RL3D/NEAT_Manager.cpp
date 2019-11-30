@@ -21,9 +21,8 @@ ANEAT_Manager::ANEAT_Manager()
 void ANEAT_Manager::BeginPlay()
 {
 	Super::BeginPlay();
-	Population *p = NULL;
 
-	p = Begin(10);
+	population = Begin(10);
 }
 
 // Called every frame
@@ -32,6 +31,16 @@ void ANEAT_Manager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (initialized) {
 		//agents[0]->MakeMoves();
+	}
+
+	TArray<AActor*> FoundAgents;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AgentClass, FoundAgents);
+
+	if (FoundAgents.Num() <= 0) {
+		EndEpoch(population, generation);
+		generation++;
+		StartEpoch(population, generation);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("New Epoch Started."));
 	}
 }
 
@@ -136,7 +145,7 @@ bool ANEAT_Manager::Evaluate(Organism *org)
 	return false;
 }
 
-int ANEAT_Manager::Epoch(Population *pop, int generation, char *filename, int &winnernum, int &winnergenes, int &winnernodes) 
+int ANEAT_Manager::StartEpoch(Population *pop, int generation) 
 {
 	
 
@@ -161,9 +170,30 @@ int ANEAT_Manager::Epoch(Population *pop, int generation, char *filename, int &w
 	return 0;
 }
 
+void ANEAT_Manager::EndEpoch(Population *pop, int generation) {
+	vector<Species*>::iterator curspecies;
+	for (curspecies = (population->species).begin(); curspecies != (population->species).end(); ++curspecies) {
+
+		//This experiment control routine issues commands to collect ave
+		//and max fitness, as opposed to having the snapshot do it, 
+		//because this allows flexibility in terms of what time
+		//to observe fitnesses at
+
+		(*curspecies)->compute_average_fitness();
+		(*curspecies)->compute_max_fitness();
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Computing...")));
+	}
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %f"), pop->organisms[0]->fitness));
+	pop->epoch(generation);
+}
+
+void ANEAT_Manager::NewEpoch(Population *pop, int generation, char *filename, int &winnernum, int &winnergenes, int &winnernodes) {
+
+}
+
 Population* ANEAT_Manager::Begin(int gens) 
 {
-	Population *pop = 0;
+	population = 0;
 	Genome *start_genome;
 	char curword[20];
 	int id;
@@ -172,9 +202,6 @@ Population* ANEAT_Manager::Begin(int gens)
 	int evals[NUM_RUNS];  //Hold records for each run
 	int genes[NUM_RUNS];
 	int nodes[NUM_RUNS];
-	int winnernum;
-	int winnergenes;
-	int winnernodes;
 
 	//For averaging
 	int totalevals = 0;
@@ -215,11 +242,12 @@ Population* ANEAT_Manager::Begin(int gens)
 		cout << "Spawning Population off Genome2" << endl;
 
 		int population_size = 6;
-		pop = new Population(start_genome, population_size);
+		population = new Population(start_genome, population_size);
 
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Started  %d")), population->species.size());
 		//cout << "Verifying Spawned Pop" << endl;
 		//pop->verify();
-
+		generation = 1;
 		for (gen = 1; gen <= 1; gen++) {
 			cout << "Epoch " << gen << endl;
 
@@ -235,7 +263,7 @@ Population* ANEAT_Manager::Begin(int gens)
 			sprintf_s(temp, "gen_%d", gen);
 
 			//Check for success
-			if (Epoch(pop, gen, temp, winnernum, winnergenes, winnernodes)) {
+			if (StartEpoch(population, gen)) {
 				//	if (xor_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
 				//Collect Stats on end of experiment
 				//evals[expcount] = NEAT::pop_size*(gen - 1) + winnernum;
@@ -280,6 +308,8 @@ Population* ANEAT_Manager::Begin(int gens)
 	//cout << "Average Genes: " << (samples > 0 ? (double)totalgenes / samples : 0) << endl;
 	//cout << "Average Evals: " << (samples > 0 ? (double)totalevals / samples : 0) << endl;
 
-	return pop;
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Started."));
+
+	return population;
 }
 

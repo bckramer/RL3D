@@ -79,8 +79,8 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 	if (initialized) {
 		MakeMoves();
 	}
-
-	if (Dead) {
+	Lifetime -= DeltaTime;
+	if (Dead || Lifetime < 0.0f) {
 		Destroy();
 	}
 
@@ -102,10 +102,10 @@ void AFirstPersonAgent::MakeMoves()
 		int net_depth = 1; //The max depth of the network to be activated
 		int relax; //Activates until relaxation
 
-		double in[4][3] = { { InitialHealth, EnemySensed, EnemyDestroyed   },
-							 { Dead, ItemAcquired, ItemSensed		        },
-							 { IncreasedFireRate, TookDamage, GaveDamage    },
-							 { ObstacleLeft, ObstacleMiddle, ObstacleRight	} };
+		double in[4][1] = {  { ObstacleLeft },
+							 { ObstacleMiddle },
+							 { ObstacleRight },
+							 { EnemySensed } };
 		net = org->net;
 		numnodes = ((org->gnome)->nodes).size();
 
@@ -125,20 +125,26 @@ void AFirstPersonAgent::MakeMoves()
 
 			out[count] = (*(net->outputs.begin()))->activation;
 
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output %d: %lf"), count, out[count]));
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output %d: %lf"), count, out[count]));
 
 			net->flush();
 
 		}
 
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Obstacle Left: %f"), ObstacleLeft));
+
 		if (!initialized) {
 			initialized = true;
 		}
+		float xMovement = out[0] - 0.5f;
+		float yMovement = out[1] - 0.5f;
+		float roll = out[2] - 0.5f;
+		bool shouldFire = (out[3] > 0.5f) ? false : true;
 
-		MoveX(out[0]);
-		MoveY(out[1]);
-		Roll(out[2]);
-		Fire(true);
+		MoveX(xMovement);
+		MoveY(yMovement);
+		Roll(roll);
+		Fire(shouldFire);
 	}
 	else {
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organism not set...")));
@@ -148,30 +154,26 @@ void AFirstPersonAgent::MakeMoves()
 void AFirstPersonAgent::UpdateFitness() 
 {
 	if (EnemySensed) {
-		Fitness += 10.0f;
+		org->fitness += 500.0f;
 	}
 	if (GaveDamage) {
-		Fitness += 20.0f;
+		org->fitness += 50000.0f;
 	}
 	if (EnemyDestroyed) {
-		Fitness += 100.0f;
+		org->fitness += 100000.0f;
 	}
 	if (ItemAcquired) {
-		Fitness += 20.0f;
+		org->fitness += 2000.0f;
 	}
 	if (ItemSensed) {
-		Fitness += 5.0f;
+		org->fitness += 500.0f;
 	}
 	if (IncreasedFireRate) {
-		Fitness += 10.0f;
+		org->fitness += 1000.0f;
 	}
-	if (TookDamage) {
-		Fitness -= 20.0f;
-	}
-	float healthBonus = InitialHealth - NormalHealth;
-	Fitness += healthBonus;
-
-
+	//if (TookDamage) {
+	//	org->fitness -= 20000.0f;
+	//}
 }
 
 void AFirstPersonAgent::ResetValues() {
@@ -186,35 +188,35 @@ void AFirstPersonAgent::ResetValues() {
 }
 
 
-// 0 or 1
-void AFirstPersonAgent::Fire(bool Shouldfire)
+void AFirstPersonAgent::Fire(bool ShouldFire)
 {
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Fire called...")));
-	if (CooldownTracker > FiringCooldown) {
-		if (ProjectileClass != NULL)
-		{
-			UWorld* const World = GetWorld();
-			if (World != NULL)
+	if (ShouldFire) {
+		if (CooldownTracker > FiringCooldown) {
+			if (ProjectileClass != NULL)
 			{
-				const FRotator SpawnRotation = GetActorRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				FVector tempLocation = GetActorLocation() + (GetActorForwardVector() * 100);
-				//const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-				const FVector SpawnLocation = tempLocation;
-		
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-		
-				//spawn the projectile at the muzzle
-				AProjectile* projectile = World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-				if (projectile != NULL) {
-					projectile->SetOwner(this);
-				}
-			}
-			CooldownTracker = 0.0f;
-		}
+				UWorld* const World = GetWorld();
+				if (World != NULL)
+				{
+					const FRotator SpawnRotation = GetActorRotation();
+					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+					FVector tempLocation = GetActorLocation() + (GetActorForwardVector() * 100);
+					//const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+					const FVector SpawnLocation = tempLocation;
 
+					//Set Spawn Collision Handling Override
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+					//spawn the projectile at the muzzle
+					AProjectile* projectile = World->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					if (projectile != NULL) {
+						projectile->SetOwner(this);
+					}
+				}
+				CooldownTracker = 0.0f;
+			}
+
+		}
 	}
 }
 
@@ -222,21 +224,22 @@ void AFirstPersonAgent::Fire(bool Shouldfire)
 void AFirstPersonAgent::MoveX(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X + (Val * MovementSpeed), ActorLocation.Y, ActorLocation.Z));
-	Fitness += (Val / 10.0f);
+	org->fitness += FMath::Abs((GetActorLocation().X - ActorLocation.X) / MovementModifier);
 }
 
 // -1.0f to 1.0f
 void AFirstPersonAgent::MoveY(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + (Val * MovementSpeed), ActorLocation.Z));
-	Fitness += (Val / 10.0f);
+	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), FMath::Abs((GetActorLocation().Y - ActorLocation.Y))));
+	org->fitness += FMath::Abs((GetActorLocation().Y - ActorLocation.Y) / MovementModifier);
 }
 
 // -1.0f to 1.0f
 void AFirstPersonAgent::Roll(float Val) {
 	FRotator ActorRotation = GetActorRotation();
 	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw, ActorRotation.Roll + (Val * RotationSpeed)));
-	Fitness += (Val / 10.0f);
+	org->fitness += FMath::Abs((GetActorRotation().Roll - ActorRotation.Roll));
 }
 
 void AFirstPersonAgent::Respawn() {
@@ -259,7 +262,7 @@ void AFirstPersonAgent::Respawn() {
 void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL))
 	{
-		if (OtherActor->GetClass() == ProjectileClass && !invincible) {
+		if (OtherActor->GetClass() == ProjectileClass && !invincible && OtherActor->GetOwner() != this) {
 			InitialHealth -= 10.0f;
 			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), InitialHealth));
 			if (InitialHealth <= 0.0f) {
@@ -274,7 +277,6 @@ void AFirstPersonAgent::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 			else {
 				//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, OtherActor->GetOwner()->GetClass());
 				if (OtherActor->GetOwner()->GetClass() == GetClass()) {
-					if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Is true!"));
 					//Enemy->GaveDamage = true;
 					AFirstPersonAgent* CastedActor = (AFirstPersonAgent*) OtherActor;
 					CastedActor->GaveDamage = true;
@@ -313,9 +315,6 @@ void AFirstPersonAgent::ObstacleCheck() {
 	FCollisionQueryParams TraceParams;
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);
 	ObstacleLeft = Hit.Distance;
-	if (Hit.bBlockingHit) {
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Hit Distance: %f"), Hit.Distance));
-	}
 	DrawDebugLine(GetWorld(), Start, Hit.TraceEnd, FColor::Orange, false, 0.1f);
 
 	// Check Middle

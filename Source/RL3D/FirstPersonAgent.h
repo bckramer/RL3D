@@ -112,6 +112,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float TraceLength = 100.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float MovementModifier = 2.0f;
+
 	/* State Information */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -155,6 +158,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float Fitness = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Lifetime = 30.0;
+
 
 
 	NEAT::Organism* org;

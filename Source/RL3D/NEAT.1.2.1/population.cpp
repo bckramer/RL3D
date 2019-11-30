@@ -480,13 +480,13 @@ bool Population::epoch(int generation) {
 	//Flag the lowest performing species over age 20 every 30 generations 
 	//NOTE: THIS IS FOR COMPETITIVE COEVOLUTION STAGNATION DETECTION
 
-	curspecies=sorted_species.end();
-	curspecies--;
-	while((curspecies!=sorted_species.begin())&&
-		((*curspecies)->age<20))
-		--curspecies;
-	if ((generation%30)==0)
-		(*curspecies)->obliterate=true;
+	//curspecies=sorted_species.end();
+	//curspecies--;
+	//while((curspecies!=sorted_species.begin())&&
+	//	((*curspecies)->age<20))
+	//	--curspecies;
+	//if ((generation%30)==0)
+	//	(*curspecies)->obliterate=true;
 
 
 	std::cout<<"Number of Species: "<<num_species<<std::endl;
@@ -507,6 +507,7 @@ bool Population::epoch(int generation) {
 	//Go through the organisms and add up their fitnesses to compute the
 	//overall average
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
+		//(*curorg)->fitness = (*curorg)->orig_fitness;
 		total+=(*curorg)->fitness;
 	}
 	overall_average=total/total_organisms;
@@ -573,18 +574,18 @@ bool Population::epoch(int generation) {
 	}
 
 	//Check for Population-level stagnation
-	curspecies=sorted_species.begin();
-	(*(((*curspecies)->organisms).begin()))->pop_champ=true; //DEBUG marker of the best of pop
-	if (((*(((*curspecies)->organisms).begin()))->orig_fitness)>
-		highest_fitness) {
-			highest_fitness=((*(((*curspecies)->organisms).begin()))->orig_fitness);
-			highest_last_changed=0;
-			std::cout<<"NEW POPULATION RECORD FITNESS: "<<highest_fitness<<std::endl;
-		}
-	else {
-		++highest_last_changed;
-		std::cout<<highest_last_changed<<" generations since last population fitness record: "<<highest_fitness<<std::endl;
-	}
+	//curspecies=sorted_species.begin();
+	//(*(((*curspecies)->organisms).begin()))->pop_champ=true; //DEBUG marker of the best of pop
+	//if (((*(((*curspecies)->organisms).begin()))->orig_fitness)>
+	//	highest_fitness) {
+	//		highest_fitness=((*(((*curspecies)->organisms).begin()))->orig_fitness);
+	//		highest_last_changed=0;
+	//		std::cout<<"NEW POPULATION RECORD FITNESS: "<<highest_fitness<<std::endl;
+	//	}
+	//else {
+	//	++highest_last_changed;
+	//	std::cout<<highest_last_changed<<" generations since last population fitness record: "<<highest_fitness<<std::endl;
+	//}
 
 
 	//Check for stagnation- if there is stagnation, perform delta-coding

@@ -168,7 +168,7 @@ void AFirstPersonAgent::MakeMoves()
 		MoveX(xMovement);
 		MoveY(yMovement);
 		Yaw(yaw);
-		Fire(false);
+		Fire(shouldFire);
 	}
 	else {
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organism not set...")));
@@ -178,15 +178,15 @@ void AFirstPersonAgent::MakeMoves()
 void AFirstPersonAgent::UpdateFitness() 
 {
 	if (EnemySensed) {
-		org->fitness += (double) EnemySensedReward;
+		org->fitness += 1000.0;
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemySensed")));
 	}
 	if (GaveDamage) {
-		org->fitness += (double) GaveDamageReward;
+		org->fitness += 100000.0;
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GaveDamage")));
 	}
 	if (EnemyDestroyed) {
-		org->fitness += (double) EnemyDestroyedReward;
+		org->fitness += 1000000.0;
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemyDestroyed")));
 	}
 	if (ItemAcquired) {

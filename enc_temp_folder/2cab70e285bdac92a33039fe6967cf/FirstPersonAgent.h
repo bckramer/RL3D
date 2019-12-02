@@ -115,16 +115,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float MovementModifier = 2.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float EnemySensedReward = 1000.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float GaveDamageReward = 100000.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float EnemyDestroyedReward = 1000000.0f;
-
-
 	/* State Information */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -56,38 +56,44 @@ TArray<AFirstPersonAgent*> ANEAT_Manager::SpawnNewAgents()
 	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 	FVector SelectedLoc = Spawn1->GetActorLocation();
+	FRotator SelectedRot = FRotator(0.0f, Spawn1->GetActorRotation().Yaw, 0.0f);
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent1 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	AFirstPersonAgent* Agent1 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent1->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent1);
 
 	SelectedLoc = Spawn2->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent2 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	SelectedRot = FRotator(0.0f, Spawn2->GetActorRotation().Yaw, 0.0f);
+	AFirstPersonAgent* Agent2 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent2->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent2);
 
 	SelectedLoc = Spawn3->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent3 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	SelectedRot = FRotator(0.0f, Spawn3->GetActorRotation().Yaw, 0.0f);
+	AFirstPersonAgent* Agent3 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent3->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent3);
 
 	SelectedLoc = Spawn4->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent4 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	SelectedRot = FRotator(0.0f, Spawn4->GetActorRotation().Yaw, 0.0f);
+	AFirstPersonAgent* Agent4 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent4->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent4);
 
 	SelectedLoc = Spawn5->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent5 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	SelectedRot = FRotator(0.0f, Spawn5->GetActorRotation().Yaw, 0.0f);
+	AFirstPersonAgent* Agent5 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent5->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent5);
 
 	SelectedLoc = Spawn6->GetActorLocation();
 	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent6 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, FRotator::ZeroRotator, ActorSpawnParams);
+	SelectedRot = FRotator(0.0f, Spawn6->GetActorRotation().Yaw, 0.0f);
+	AFirstPersonAgent* Agent6 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
 	Agent6->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
 	agents.Add(Agent6);
 
@@ -136,7 +142,7 @@ bool ANEAT_Manager::Evaluate(Organism *org)
 
 		out[count] = (*(net->outputs.begin()))->activation;
 
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output %d: %lf"), count, out[count]));
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output %d: %lf"), count, out[count]));
 
 		net->flush();
 
@@ -153,9 +159,10 @@ int ANEAT_Manager::StartEpoch(Population *pop, int generation)
 	agents = SpawnNewAgents();
 	
 	int curAgent = 0;
-	for (curorg = (pop->organisms).begin(); curorg != (pop->organisms).end(); ++curorg)
+	for (curorg = (population->organisms).begin(); curorg != (population->organisms).end(); ++curorg)
 	{
 		agents[curAgent]->org = *curorg;
+		agents[curAgent]->org->fitness = 0.01;
 		agents[curAgent]->MakeMoves();
 		curAgent++;
 	}
@@ -183,8 +190,8 @@ void ANEAT_Manager::EndEpoch(Population *pop, int generation) {
 		(*curspecies)->compute_max_fitness();
 		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Computing...")));
 	}
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %f"), pop->organisms[0]->fitness));
-	pop->epoch(generation);
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %lf"), (double) population->organisms[0]->fitness));
+	population->epoch(generation);
 }
 
 void ANEAT_Manager::NewEpoch(Population *pop, int generation, char *filename, int &winnernum, int &winnergenes, int &winnernodes) {

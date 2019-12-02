@@ -158,9 +158,9 @@ void AFirstPersonAgent::MakeMoves()
 		if (!initialized) {
 			initialized = true;
 		}
-		float xMovement = (float) out[0];
-		float yMovement = (float) out[1];
-		float yaw = (float) out[2];
+		float xMovement = (float) out[0] - 0.5;
+		float yMovement = (float) out[1] - 0.5;
+		float yaw = (float) out[2] - 0.5;
 		bool shouldFire = ((float) out[3] > 0.5f) ? true : false;
 
 		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output: %lf"), out[0]));

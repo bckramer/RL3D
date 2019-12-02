@@ -190,13 +190,6 @@ void ANEAT_Manager::EndEpoch(Population *pop, int generation) {
 		(*curspecies)->compute_max_fitness();
 		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Computing...")));
 	}
-	double max = 0.0;
-	for (int i = 0; i < population->organisms.size(); i++)
-	{
-		if (population->organisms[i]->fitness > max) {
-			max = population->organisms[i]->fitness;
-		}
-	}
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %lf"), (double) population->organisms[0]->fitness));
 	population->epoch(generation);
 }

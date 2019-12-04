@@ -21,7 +21,10 @@ ANEAT_Manager::ANEAT_Manager()
 void ANEAT_Manager::BeginPlay()
 {
 	Super::BeginPlay();
-
+	prevMax = 0.0f;
+	maxFitness = 0.0f;
+	generation = 0;
+	prevAvg = 0;
 	population = Begin(10);
 }
 
@@ -162,6 +165,10 @@ int ANEAT_Manager::StartEpoch(Population *pop, int generation)
 	for (curorg = (population->organisms).begin(); curorg != (population->organisms).end(); ++curorg)
 	{
 		agents[curAgent]->org = *curorg;
+		if (curAgent == bestOrg) {
+			agents[curAgent]->PreviousWinner = true;
+
+		}
 		agents[curAgent]->org->fitness = 0.01;
 		agents[curAgent]->MakeMoves();
 		curAgent++;
@@ -191,13 +198,42 @@ void ANEAT_Manager::EndEpoch(Population *pop, int generation) {
 		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Computing...")));
 	}
 	double max = 0.0;
+	double sum = 0.0;
 	for (int i = 0; i < population->organisms.size(); i++)
 	{
+		sum += population->organisms[i]->fitness;
 		if (population->organisms[i]->fitness > max) {
 			max = population->organisms[i]->fitness;
+			bestOrg = i;
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("New")));
 		}
 	}
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %lf"), (double) population->organisms[0]->fitness));
+	prevMax = max;
+	prevAvg = sum / population->organisms.size();
+	all_averages.push_back(prevAvg);
+	all_maxes.push_back(max);
+	maxFitness = (max > maxFitness) ? max : maxFitness;
+	all_bests.push_back(maxFitness);
+	if (generation % 5 == 0) {
+		ofstream csv_file;
+		csv_file.open("C:\\Users\\Ben\\Documents\\Unreal Projects\\RL3D\\Source\\RL3D\\basic_movement.csv");
+		for (int i = 0; i < generation; i++) {
+			csv_file << to_string(all_averages[i]);
+			csv_file << ",";
+		}
+		csv_file << "\n";
+		for (int i = 0; i < generation; i++) {
+			csv_file << to_string(all_maxes[i]);
+			csv_file << ",";
+		}
+		csv_file << "\n";
+		for (int i = 0; i < generation; i++) {
+			csv_file << to_string(all_bests[i]);
+			csv_file << ",";
+		}
+		csv_file.close();
+	}
+	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Organisms: %lf"), (double) population->organisms[5]->fitness));
 	population->epoch(generation);
 }
 
@@ -258,7 +294,7 @@ Population* ANEAT_Manager::Begin(int gens)
 		int population_size = 6;
 		population = new Population(start_genome, population_size);
 
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Started  %d")), population->species.size());
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Started  %d")), population->species.size());
 		//cout << "Verifying Spawned Pop" << endl;
 		//pop->verify();
 		generation = 1;

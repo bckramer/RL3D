@@ -59,8 +59,17 @@ public:
 
 	bool Evaluate(NEAT::Organism *org);
 
+
 	NEAT::Population* population;
-	int generation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int generation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int maxFitness;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int prevMax;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int prevAvg;
 
 	bool initialized = false;
 
@@ -72,6 +81,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		UClass* AgentClass;
 
+	int bestOrg;
+
+	std::vector<int> all_maxes;
+	std::vector<int> all_bests;
+	std::vector<int> all_averages;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		ASpawnPoint* Spawn1;

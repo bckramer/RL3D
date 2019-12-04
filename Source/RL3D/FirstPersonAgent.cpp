@@ -35,10 +35,11 @@ void AFirstPersonAgent::BeginPlay()
 	NormalHealth = InitialHealth;
 	Super::BeginPlay();
 	if (PawnSensingComp) {
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Sensing Activated")));
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Sensing Activated")));
 		PawnSensingComp->OnSeePawn.AddDynamic(this, &AFirstPersonAgent::OnSeePawn);
 		//PawnSensingComp->OnHearNoise.AddDynamic(this, &ABasicAutonomousShip::OnHearNoise);
 	}
+	PreviousLocation = GetActorLocation();
 	CollisionComp->OnComponentHit.RemoveDynamic(this, &AFirstPersonAgent::OnHit);
 	CollisionComp->OnComponentHit.AddDynamic(this, &AFirstPersonAgent::OnHit);
 	
@@ -158,15 +159,17 @@ void AFirstPersonAgent::MakeMoves()
 		if (!initialized) {
 			initialized = true;
 		}
-		float xMovement = (float) out[0] - 0.5;
-		float yMovement = (float) out[1] - 0.5;
+		FVector movement = FVector(out[0] - 0.5, out[1] - 0.5, 0.0f);
+		movement.Normalize();
+
+		//float xMovement = (float) out[0]; // * 2.0) - 1.0) * 180.0f;
+		//float yMovement = FMath::Cos(180.0f);
 		float yaw = (float) out[2] - 0.5;
 		bool shouldFire = ((float) out[3] > 0.5f) ? true : false;
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output: X: %f  Y: %f Length: %f"), movement.X, movement.Y, movement.Size()));
 
-		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Output: %lf"), out[0]));
-
-		MoveX(xMovement);
-		MoveY(yMovement);
+		MoveX(movement.X);
+		MoveY(movement.Y);
 		Yaw(yaw);
 		Fire(false);
 	}
@@ -205,6 +208,9 @@ void AFirstPersonAgent::UpdateFitness()
 		org->fitness -= 20000.0;
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("TookDamage")));
 	}
+
+	org->fitness += FMath::Abs(PreviousLocation.X - GetActorLocation().X) / MovementModifier;
+	org->fitness += FMath::Abs(PreviousLocation.Y - GetActorLocation().Y) / MovementModifier;
 }
 
 void AFirstPersonAgent::ResetValues() {
@@ -255,7 +261,7 @@ void AFirstPersonAgent::Fire(bool ShouldFire)
 void AFirstPersonAgent::MoveX(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X + (Val * MovementSpeed), ActorLocation.Y, ActorLocation.Z));
-	org->fitness += (double) FMath::Abs((GetActorLocation().X - ActorLocation.X) / MovementModifier);
+	//org->fitness += (double) FMath::Abs((GetActorLocation().X - ActorLocation.X) / MovementModifier);
 }
 
 // -1.0f to 1.0f
@@ -263,7 +269,7 @@ void AFirstPersonAgent::MoveY(float Val) {
 	FVector ActorLocation = GetActorLocation();
 	SetActorLocation(FVector(ActorLocation.X, ActorLocation.Y + (Val * MovementSpeed), ActorLocation.Z));
 	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health: %f"), FMath::Abs((GetActorLocation().Y - ActorLocation.Y))));
-	org->fitness += (double) FMath::Abs((GetActorLocation().Y - ActorLocation.Y) / MovementModifier);
+	//org->fitness += (double) FMath::Abs((GetActorLocation().Y - ActorLocation.Y) / MovementModifier);
 }
 
 // -1.0f to 1.0f

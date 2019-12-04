@@ -172,6 +172,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float Lifetime = 30.0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool PreviousWinner = false;
+
 
 
 	NEAT::Organism* org;
@@ -184,6 +187,8 @@ public:
 	float invincibilityTimer = 0.0f;
 
 	bool initialized = false;
+
+	FVector PreviousLocation;
 
 	UFUNCTION(BlueprintCallable)
 		void MakeMoves();

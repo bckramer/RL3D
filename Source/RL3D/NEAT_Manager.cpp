@@ -47,60 +47,81 @@ void ANEAT_Manager::Tick(float DeltaTime)
 	}
 }
 
-TArray<AFirstPersonAgent*> ANEAT_Manager::SpawnNewAgents()
+AFirstPersonAgent* ANEAT_Manager::SpawnNewAgents(int agent)
 {
 	float spawnHeight = 300.0f;
 	TArray<AFirstPersonAgent*> agents;
 	float TraceLength = 100.0f;
 	float MuzzleXOffset = 100.0f;
+	FVector SelectedLoc;
+	FRotator SelectedRot;
 
 	FActorSpawnParameters ActorSpawnParams;
 	UWorld* const World = GetWorld();
 	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-	FVector SelectedLoc = Spawn1->GetActorLocation();
-	FRotator SelectedRot = FRotator(0.0f, Spawn1->GetActorRotation().Yaw, 0.0f);
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	AFirstPersonAgent* Agent1 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent1->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent1);
+	if (agent == 0)
+	{
+		SelectedLoc = Spawn1->GetActorLocation();
+		SelectedRot = FRotator(0.0f, Spawn1->GetActorRotation().Yaw, 0.0f);
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		AFirstPersonAgent* Agent1 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent1->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent1;
+	}
 
-	SelectedLoc = Spawn2->GetActorLocation();
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	SelectedRot = FRotator(0.0f, Spawn2->GetActorRotation().Yaw, 0.0f);
-	AFirstPersonAgent* Agent2 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent2->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent2);
+	if (agent == 1)
+	{
+		SelectedLoc = Spawn2->GetActorLocation();
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		SelectedRot = FRotator(0.0f, Spawn2->GetActorRotation().Yaw, 0.0f);
+		AFirstPersonAgent* Agent2 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent2->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent2;
+	}
 
-	SelectedLoc = Spawn3->GetActorLocation();
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	SelectedRot = FRotator(0.0f, Spawn3->GetActorRotation().Yaw, 0.0f);
-	AFirstPersonAgent* Agent3 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent3->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent3);
+	if (agent == 2)
+	{
+		SelectedLoc = Spawn3->GetActorLocation();
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		SelectedRot = FRotator(0.0f, Spawn3->GetActorRotation().Yaw, 0.0f);
+		AFirstPersonAgent* Agent3 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent3->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent3;
+	}
 
-	SelectedLoc = Spawn4->GetActorLocation();
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	SelectedRot = FRotator(0.0f, Spawn4->GetActorRotation().Yaw, 0.0f);
-	AFirstPersonAgent* Agent4 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent4->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent4);
 
-	SelectedLoc = Spawn5->GetActorLocation();
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	SelectedRot = FRotator(0.0f, Spawn5->GetActorRotation().Yaw, 0.0f);
-	AFirstPersonAgent* Agent5 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent5->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent5);
+	if (agent == 3)
+	{
+		SelectedLoc = Spawn4->GetActorLocation();
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		SelectedRot = FRotator(0.0f, Spawn4->GetActorRotation().Yaw, 0.0f);
+		AFirstPersonAgent* Agent4 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent4->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent4;
+	}
 
-	SelectedLoc = Spawn6->GetActorLocation();
-	SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
-	SelectedRot = FRotator(0.0f, Spawn6->GetActorRotation().Yaw, 0.0f);
-	AFirstPersonAgent* Agent6 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
-	Agent6->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
-	agents.Add(Agent6);
+	if (agent == 4)
+	{
+		SelectedLoc = Spawn5->GetActorLocation();
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		SelectedRot = FRotator(0.0f, Spawn5->GetActorRotation().Yaw, 0.0f);
+		AFirstPersonAgent* Agent5 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent5->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent5;
+	}
 
-	return agents;
+	if (agent == 5)
+	{
+		SelectedLoc = Spawn6->GetActorLocation();
+		SelectedLoc.Z = SelectedLoc.Z + spawnHeight;
+		SelectedRot = FRotator(0.0f, Spawn6->GetActorRotation().Yaw, 0.0f);
+		AFirstPersonAgent* Agent6 = World->SpawnActor<AFirstPersonAgent>(AgentClass, SelectedLoc, SelectedRot, ActorSpawnParams);
+		Agent6->FP_MuzzleLocation->SetRelativeLocation(FVector(MuzzleXOffset, 0.0f, 0.0f));
+		return Agent6;
+	}
+
+	return NULL;
 }
 
 bool ANEAT_Manager::Evaluate(Organism *org)
@@ -159,18 +180,19 @@ int ANEAT_Manager::StartEpoch(Population *pop, int generation)
 	
 
 	vector<Organism*>::iterator curorg;
-	agents = SpawnNewAgents();
+	//agents = SpawnNewAgents();
 	
 	int curAgent = 0;
 	for (curorg = (population->organisms).begin(); curorg != (population->organisms).end(); ++curorg)
 	{
-		agents[curAgent]->org = *curorg;
+		AFirstPersonAgent* agent = SpawnNewAgents(curAgent);
+		agent->org = *curorg;
 		if (curAgent == bestOrg) {
-			agents[curAgent]->PreviousWinner = true;
+			agent->PreviousWinner = true;
 
 		}
-		agents[curAgent]->org->fitness = 0.01;
-		agents[curAgent]->MakeMoves();
+		agent->org->fitness = 0.01;
+		agent->MakeMoves();
 		curAgent++;
 	}
 	initialized = true;

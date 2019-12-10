@@ -74,7 +74,7 @@ public:
 	bool initialized = false;
 
 	UFUNCTION(BlueprintCallable)
-		TArray<AFirstPersonAgent*> SpawnNewAgents();
+		AFirstPersonAgent* SpawnNewAgents(int agent);
 
 	TArray<AFirstPersonAgent*> agents;
 

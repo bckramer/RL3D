@@ -78,6 +78,8 @@ void AFirstPersonAgent::Tick(float DeltaTime)
 	}
 	ObstacleCheck();
 	UpdateFitness();
+	PreviousLocation.X = (GetActorLocation().X > PreviousLocation.X) ? GetActorLocation().X : PreviousLocation.X;
+	PreviousLocation.Y = (GetActorLocation().Y > PreviousLocation.Y) ? GetActorLocation().Y : PreviousLocation.Y;
 	/* Give Output */
 
 	/* Output Given */
@@ -110,12 +112,12 @@ void AFirstPersonAgent::MakeMoves()
 		int net_depth = 1; //The max depth of the network to be activated
 		//int relax; //Activates until relaxation
 
-		double in[8] = {     (double) ObstacleMiddle,
-							 (double) GetActorLocation().X,
-							 (double) ObstacleLeft,
+		double in[8] = {
+			(double )GetActorLocation().Y,
+			(double) GetActorLocation().Y,
+			(double) ObstacleMiddle,
 							 (double) ObstacleRight,
-							 (double) GetActorLocation().Y,
-							 (double) GetActorRotation().Roll,
+							 (double) ObstacleLeft, (double) GetActorRotation().Yaw,
 							 (double) EnemySensed,
 							 (double) InitialHealth };
 		net = org->net;
@@ -180,37 +182,37 @@ void AFirstPersonAgent::MakeMoves()
 
 void AFirstPersonAgent::UpdateFitness() 
 {
-	if (EnemySensed) {
-		org->fitness += (double) EnemySensedReward;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemySensed")));
-	}
-	if (GaveDamage) {
-		org->fitness += (double) GaveDamageReward;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GaveDamage")));
-	}
-	if (EnemyDestroyed) {
-		org->fitness += (double) EnemyDestroyedReward;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemyDestroyed")));
-	}
-	if (ItemAcquired) {
-		org->fitness += 2000.0;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ItemDestroyed")));
-	}
-	if (ItemSensed) {
-		org->fitness += 500.0;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ItemSensed")));
-	}
-	if (IncreasedFireRate) {
-		org->fitness += 1000.0;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("IncreasedFireRate")));
-	}
-	if (TookDamage) {
-		org->fitness -= 20000.0;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("TookDamage")));
-	}
+	//if (EnemySensed) {
+	//	org->fitness += (double) EnemySensedReward;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemySensed")));
+	//}
+	//if (GaveDamage) {
+	//	org->fitness += (double) GaveDamageReward;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("GaveDamage")));
+	//}
+	//if (EnemyDestroyed) {
+	//	org->fitness += (double) EnemyDestroyedReward;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("EnemyDestroyed")));
+	//}
+	//if (ItemAcquired) {
+	//	org->fitness += 2000.0;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ItemDestroyed")));
+	//}
+	//if (ItemSensed) {
+	//	org->fitness += 500.0;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("ItemSensed")));
+	//}
+	//if (IncreasedFireRate) {
+	//	org->fitness += 1000.0;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("IncreasedFireRate")));
+	//}
+	//if (TookDamage) {
+	//	org->fitness -= 20000.0;
+	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("TookDamage")));
+	//}
 
-	org->fitness += FMath::Abs(PreviousLocation.X - GetActorLocation().X) / MovementModifier;
-	org->fitness += FMath::Abs(PreviousLocation.Y - GetActorLocation().Y) / MovementModifier;
+	org->fitness += GetActorLocation().X- PreviousLocation.X;
+	org->fitness += (GetActorLocation().Y - PreviousLocation.Y) / MovementModifier;
 }
 
 void AFirstPersonAgent::ResetValues() {
@@ -276,7 +278,7 @@ void AFirstPersonAgent::MoveY(float Val) {
 void AFirstPersonAgent::Yaw(float Val) {
 	FRotator ActorRotation = GetActorRotation();
 	SetActorRotation(FRotator(ActorRotation.Pitch, ActorRotation.Yaw + (Val * RotationSpeed), ActorRotation.Roll));
-	org->fitness += (double) FMath::Abs((GetActorRotation().Yaw - ActorRotation.Yaw));
+	//org->fitness += (double) FMath::Abs((GetActorRotation().Yaw - ActorRotation.Yaw));
 }
 
 void AFirstPersonAgent::Respawn() {

@@ -449,7 +449,7 @@ bool Population::epoch(int generation) {
 	//We can try to keep the number of species constant at this number
 	int num_species_target = 4;
 	int num_species = species.size();
-	double compat_mod = 0.3;  //Modify compat thresh to control speciation
+	double compat_mod = 1.0;  //Modify compat thresh to control speciation
 
 
 	//Keeping species diverse
